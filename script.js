@@ -58,7 +58,7 @@ function GameController(
       token: 2,
     },
   ];
-
+  const dimension = 3;
   let activePlayer = players[0];
 
   const switchActivePlayer = () => {
@@ -77,9 +77,57 @@ function GameController(
     console.log(`${activePlayer.name} marks the [${row}, ${column}]`);
     Gameboard.playMove(activePlayer.token, row, column);
 
-    switchActivePlayer();
-    printNewRound();
+    let over = checkForWinner();
+
+    if (!over) {
+      switchActivePlayer();
+      printNewRound();  
+    } else {
+      console.log(`${activePlayer.name} won!!!`);
+      Gameboard.printGameboard();
+    }
+    
   };
+
+  const checkForWinner = () => {
+    let xcounter = 0;
+    let ycounter = 0;
+    let zcounter = 0;
+    for (let i = 0; i < dimension; i++) {
+      for (let j = 0; j < dimension; j++) {
+        if (Gameboard.getGrid()[i][j].getValue() == activePlayer.token) {
+          ycounter++;
+          if (ycounter == 3) 
+            return true;
+        }
+      }
+      ycounter = 0;
+    }
+    for (let i = 0; i < dimension; i++) {
+      for (let j = 0; j < dimension; j++) {
+        if (Gameboard.getGrid()[j][i].getValue() == activePlayer.token) {
+          xcounter++;
+          if (xcounter == 3) 
+            return true;
+        }
+      }
+      xcounter = 0;
+    }
+    for (let i = 0; i < dimension; i++) {
+      if (Gameboard.getGrid()[i][i].getValue() == activePlayer.token)
+        zcounter++;
+    }
+    if (zcounter == 3)
+      return true
+    zcounter = 0;
+    for (let i = 0; i < dimension; i++) {
+      if (Gameboard.getGrid()[dimension - i - 1][i].getValue() == activePlayer.token)
+        zcounter++;
+    }
+    if (zcounter == 3)
+      return true
+    zcounter = 0;
+  }
 
   printNewRound();
 
