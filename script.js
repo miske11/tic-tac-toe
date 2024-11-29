@@ -76,7 +76,6 @@ function GameController(
   const playRound = (row, column) => {
     console.log(`${activePlayer.name} marks the [${row}, ${column}]`);
     Gameboard.playMove(activePlayer.token, row, column);
-
     const tie = checkForTie();
     if (!tie) {
       let over = checkForWinner();
@@ -90,6 +89,7 @@ function GameController(
     } else {
       console.log(`It's a tie.`);
     }
+    ScreenControler.drawGrid();
   };
 
   const checkForWinner = () => {
@@ -152,3 +152,39 @@ function GameController(
 }
 
 const game = new GameController();
+
+
+const ScreenControler = (function () {
+  const grid = document.querySelector(".grid");
+  const turn = document.querySelector(".turn");
+
+  const getSign = (value) => {
+    switch (value) {
+      case 0:
+        return " ";
+      case 1:
+        return "x";
+      case 2:
+        return "o";
+    }
+  };
+
+  const drawGrid = () => {
+    while (grid.firstChild) {
+      grid.removeChild(grid.lastChild);
+    }
+    turn.textContent = `${game.getActivePlayer().name}'s turn`;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const cell = document.createElement("div");
+        cell.setAttribute("class", "field");
+        cell.textContent = getSign(Gameboard.getGrid()[i][j].getValue());
+        grid.appendChild(cell);
+      }
+    }
+  };
+  return { drawGrid };
+})(game);
+
+
+ScreenControler.drawGrid();
