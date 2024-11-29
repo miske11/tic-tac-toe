@@ -12,7 +12,7 @@ const Gameboard = (function () {
   const getGrid = () => grid;
 
   const playMove = (player, row, col) => {
-      grid[row][col].addShape(player);
+    grid[row][col].addShape(player);
   };
 
   const printGameboard = () => {
@@ -77,16 +77,19 @@ function GameController(
     console.log(`${activePlayer.name} marks the [${row}, ${column}]`);
     Gameboard.playMove(activePlayer.token, row, column);
 
-    let over = checkForWinner();
-
-    if (!over) {
-      switchActivePlayer();
-      printNewRound();  
+    const tie = checkForTie();
+    if (!tie) {
+      let over = checkForWinner();
+      if (!over) {
+        switchActivePlayer();
+        printNewRound();
+      } else {
+        console.log(`${activePlayer.name} won!!!`);
+        Gameboard.printGameboard();
+      }
     } else {
-      console.log(`${activePlayer.name} won!!!`);
-      Gameboard.printGameboard();
+      console.log(`It's a tie.`);
     }
-    
   };
 
   const checkForWinner = () => {
@@ -97,8 +100,7 @@ function GameController(
       for (let j = 0; j < dimension; j++) {
         if (Gameboard.getGrid()[i][j].getValue() == activePlayer.token) {
           ycounter++;
-          if (ycounter == 3) 
-            return true;
+          if (ycounter == 3) return true;
         }
       }
       ycounter = 0;
@@ -107,8 +109,7 @@ function GameController(
       for (let j = 0; j < dimension; j++) {
         if (Gameboard.getGrid()[j][i].getValue() == activePlayer.token) {
           xcounter++;
-          if (xcounter == 3) 
-            return true;
+          if (xcounter == 3) return true;
         }
       }
       xcounter = 0;
@@ -117,17 +118,30 @@ function GameController(
       if (Gameboard.getGrid()[i][i].getValue() == activePlayer.token)
         zcounter++;
     }
-    if (zcounter == 3)
-      return true
+    if (zcounter == 3) return true;
     zcounter = 0;
     for (let i = 0; i < dimension; i++) {
-      if (Gameboard.getGrid()[dimension - i - 1][i].getValue() == activePlayer.token)
+      if (
+        Gameboard.getGrid()[dimension - i - 1][i].getValue() ==
+        activePlayer.token
+      )
         zcounter++;
     }
-    if (zcounter == 3)
-      return true
+    if (zcounter == 3) return true;
     zcounter = 0;
-  }
+  };
+
+  const checkForTie = () => {
+    let tie = true;
+    for (let i = 0; i < dimension; i++) {
+      for (let j = 0; j < dimension; j++) {
+        if (Gameboard.getGrid()[i][j].getValue() == 0) {
+          tie = false;
+        }
+      }
+    }
+    return tie;
+  };
 
   printNewRound();
 
