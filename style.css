@@ -26,4 +26,6 @@ body {
     align-items: center;
     justify-content: center;
     margin: 1px;
+    background-color: white;
+    font-size: 40px;
 }
