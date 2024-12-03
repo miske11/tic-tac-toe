@@ -12,7 +12,10 @@ const Gameboard = (function () {
   const getGrid = () => grid;
 
   const playMove = (player, row, col) => {
-    grid[row][col].addShape(player);
+    if (grid[row][col].getValue() != 0) return false;
+
+    grid[row][col].addValue(player);
+    return true;
   };
 
   const printGameboard = () => {
@@ -32,14 +35,14 @@ const Gameboard = (function () {
 function Cell() {
   let value = 0;
 
-  const addShape = (player) => {
+  const addValue = (player) => {
     value = player;
   };
 
   const getValue = () => value;
 
   return {
-    addShape,
+    addValue,
     getValue,
   };
 }
@@ -75,29 +78,21 @@ function GameController(
 
   const playRound = (row, column) => {
     console.log(`${activePlayer.name} marks the [${row}, ${column}]`);
-    Gameboard.playMove(activePlayer.token, row, column);
-    const tie = checkForTie();
-    if (!tie) {
+    const played = Gameboard.playMove(activePlayer.token, row, column);
+    if (played) {
       let over = checkForWinner();
       if (!over) {
-        switchActivePlayer();
-        printNewRound();
-        ScreenControler.drawGrid();
-        ScreenControler.printPlayerTurn();
+        const tie = checkForTie();
+        if (!tie) {
+          switchActivePlayer();
+          printNewRound();
+        } else {
+          console.log(`It's a tie.`);
+        }
       } else {
         console.log(`${activePlayer.name} won!!!`);
-        ScreenControler.drawGrid();
-        ScreenControler.printWin();
-        ScreenControler.disableCells();
-        //Gameboard.printGameboard();
       }
-    } else {
-      console.log(`It's a tie.`);
-      ScreenControler.drawGrid();
-      ScreenControler.printTie();
-      ScreenControler.disableCells();
     }
-    
   };
 
   const checkForWinner = () => {
@@ -159,9 +154,8 @@ function GameController(
   };
 }
 
-const game = new GameController();
-
-const ScreenControler = (function () {
+function ScreenControler() {
+  const game = GameController();
   const grid = document.querySelector(".grid");
   const turn = document.querySelector(".turn");
 
@@ -176,55 +170,37 @@ const ScreenControler = (function () {
     }
   };
 
-  const drawGrid = () => {
-    while (grid.firstChild) {
-      grid.removeChild(grid.lastChild);
-    }
-    
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        const cell = document.createElement("button");
-        cell.setAttribute("class", "field");
-        cell.setAttribute("id", `${i}${j}`);
-        cell.textContent = getSign(Gameboard.getGrid()[i][j].getValue());
-        if (cell.textContent === "") {
-          cell.addEventListener('click', () => game.playRound(i,j))
-        }
-        grid.appendChild(cell);
-      }
-    }
+  const updateScreen = () => {
+    grid.textContent = "";
+    const activePlayer = game.getActivePlayer();
+
+    turn.textContent = `${activePlayer.name}'s turn...`;
+
+    Gameboard.getGrid().forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        const cellButton = document.createElement("button");
+        cellButton.classList.add("field");
+        cellButton.dataset.column = colIndex;
+        cellButton.dataset.row = rowIndex;
+        cellButton.textContent = getSign(cell.getValue());
+        grid.appendChild(cellButton);
+      });
+    });
   };
 
-  const disableCells = () => {
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        const cell = document.getElementById(`${i}${j}`);
-        console.log(cell);
-        cell.disabled = true;
-      }
-    }
+  function clickHandlerGrid(e) {
+    const selectedColumn = e.target.dataset.column;
+    const selectedRow = e.target.dataset.row;
+
+    if (!selectedColumn || !selectedRow) return;
+
+    game.playRound(selectedRow, selectedColumn);
+    updateScreen();
   }
 
-  const printPlayerTurn = () => {
-    turn.textContent = `${game.getActivePlayer().name}'s turn`;
-  }
+  grid.addEventListener("click", clickHandlerGrid);
 
-  const printTie = () => {
-    turn.textContent = `It's a tie.`;
-  };
+  updateScreen();
+}
 
-  const printWin = () => {
-    turn.textContent = `${game.getActivePlayer().name} won!!!`;
-  }
-
-  return {
-    drawGrid,
-    printTie,
-    printWin,
-    printPlayerTurn,
-    disableCells,
-  };
-})(game);
-
-ScreenControler.drawGrid();
-ScreenControler.printPlayerTurn();
+ScreenControler();
