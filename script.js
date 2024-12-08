@@ -1,13 +1,8 @@
 function Gameboard() {
-  const grid = [];
+  let grid = [];
   const dimension = 3;
 
-  for (let i = 0; i < dimension; i++) {
-    grid[i] = [];
-    for (let j = 0; j < dimension; j++) {
-      grid[i].push(Cell());
-    }
-  }
+  
 
   const getGrid = () => grid;
 
@@ -25,10 +20,25 @@ function Gameboard() {
     console.log(gridWithCellValues);
   };
 
+  const drawGrid = () => {
+    if (grid != []) {
+      grid = [];
+    } 
+    for (let i = 0; i < dimension; i++) {
+      grid[i] = [];
+      for (let j = 0; j < dimension; j++) {
+        grid[i].push(Cell());
+      }
+    }
+  }
+
+  drawGrid();
+
   return {
     getGrid,
     playMove,
     printGameboard,
+    drawGrid,
   };
 }
 
@@ -198,6 +208,7 @@ function ScreenControler() {
         grid.appendChild(cellButton);
         cellButton.disabled = true;
         nextRoundBtn.style.visibility = "visible";
+        nextRoundBtn.addEventListener('click', startNewRound);
       });
     });
   };
@@ -237,10 +248,19 @@ function ScreenControler() {
     const scoreDiv = document.createElement('p');
     scoreDiv.classList.add('container');
     scoreDiv.textContent = player.score;
-    const playerDiv = document.getElementById(`c${player.token}`)
+    scoreDiv.classList.add('score');
+    const playerDiv = document.getElementById(`c${player.token}`);
     const previusScore = document.querySelector(`#c${player.token} > .score` );
+    
     playerDiv.removeChild(previusScore);
     playerDiv.appendChild(scoreDiv);
+  }
+
+  function startNewRound() {
+    console.log('called');
+    const brd = game.getBoard();
+    brd.drawGrid();
+    updateScreen();
   }
 
   grid.addEventListener("click", clickHandlerGrid);
