@@ -2,8 +2,6 @@ function Gameboard() {
   let grid = [];
   const dimension = 3;
 
-  
-
   const getGrid = () => grid;
 
   const playMove = (player, row, col) => {
@@ -66,21 +64,41 @@ function GameController(
       name: playerOneName,
       token: 1,
       score: 0,
+      id: 1,
     },
     {
       name: playerTwoName,
       token: 2,
       score: 0,
+      id: 2,
     },
   ];
   const dimension = 3;
   let activePlayer = players[0];
   let board = Gameboard();
+  let round = 0;
+
+  const switchFirstPlayer = () => {
+    if (round % 2 == 1) {
+      activePlayer = players[0];
+    }
+    else {
+      activePlayer = players[1];
+    }
+    round++;
+  };
 
   const switchActivePlayer = () => {
     if (activePlayer === players[0]) activePlayer = players[1];
     else activePlayer = players[0];
   };
+
+  const switchTokens = () => {
+    let temp = players[0].token;
+    players[0].token = players[1].token;
+    players[1].token = temp;
+    console.log(players); 
+  }
 
   const getActivePlayer = () => activePlayer;
 
@@ -91,7 +109,8 @@ function GameController(
 
   const playRound = (row, column) => {
     console.log(`${activePlayer.name} marks the [${row}, ${column}]`);
-    board.playMove(activePlayer.token, row, column);
+    const validMove = board.playMove(activePlayer.token, row, column);
+    if (validMove) {
     let over = checkForWinner();
     if (!over) {
       const tie = checkForTie();
@@ -108,11 +127,10 @@ function GameController(
       activePlayer.score++;
       return over;
     }
+  }
   };
 
   const getBoard = () => board;
-
-  const isOver = () => over;
 
   const checkForWinner = () => {
     let xcounter = 0;
@@ -169,7 +187,11 @@ function GameController(
     playRound,
     getActivePlayer,
     getBoard,
-    isOver,
+    switchActivePlayer,
+    switchTokens,
+    checkForTie,
+    checkForWinner,
+    switchFirstPlayer,
   };
 }
 
@@ -195,7 +217,12 @@ function ScreenControler() {
     const activePlayer = game.getActivePlayer();
     const nextRoundBtn = document.querySelector('.new');
 
-    turn.textContent = `${activePlayer.name} won!!!`;
+    if (!game.checkForWinner() && game.checkForTie()) {
+      turn.textContent = `It's a tie.`;
+    } else {
+      turn.textContent = `${activePlayer.name} won!!!`;
+    }
+    
     updatePlayerDisplay(activePlayer);
 
     board.getGrid().forEach((row, rowIndex) => {
@@ -207,15 +234,16 @@ function ScreenControler() {
         cellButton.textContent = getSign(cell.getValue());
         grid.appendChild(cellButton);
         cellButton.disabled = true;
-        nextRoundBtn.style.visibility = "visible";
-        nextRoundBtn.addEventListener('click', startNewRound);
       });
     });
+    nextRoundBtn.style.visibility = "visible";
+    nextRoundBtn.addEventListener('click', startNewRound);
   };
 
   const updateScreen = () => {
     grid.textContent = "";
     const activePlayer = game.getActivePlayer();
+    const nextRoundBtn = document.querySelector('.new');
 
     turn.textContent = `${activePlayer.name}'s turn...`;
 
@@ -229,6 +257,7 @@ function ScreenControler() {
         grid.appendChild(cellButton);
       });
     });
+    nextRoundBtn.style.visibility = "hidden";
   };
 
   function clickHandlerGrid(e) {
@@ -249,16 +278,17 @@ function ScreenControler() {
     scoreDiv.classList.add('container');
     scoreDiv.textContent = player.score;
     scoreDiv.classList.add('score');
-    const playerDiv = document.getElementById(`c${player.token}`);
-    const previusScore = document.querySelector(`#c${player.token} > .score` );
+    const playerDiv = document.getElementById(`c${player.id}`);
+    const previusScore = document.querySelector(`#c${player.id} > .score` );
     
     playerDiv.removeChild(previusScore);
     playerDiv.appendChild(scoreDiv);
   }
 
   function startNewRound() {
-    console.log('called');
     const brd = game.getBoard();
+    game.switchFirstPlayer();
+    game.switchTokens();
     brd.drawGrid();
     updateScreen();
   }
